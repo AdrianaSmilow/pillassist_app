@@ -1,0 +1,93 @@
+{
+	"info": {
+		"_postman_id": "715724fa-a410-4be1-b094-d47d0e4577c6",
+		"name": "PillAssist",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44854916",
+		"_collection_link": "https://adriana-9576467.postman.co/workspace/Adriana's-Workspace~eef16bde-0967-4e2b-833d-c5e4c3a208bb/collection/44854916-715724fa-a410-4be1-b094-d47d0e4577c6?action=share&source=collection_link&creator=44854916"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/medicine/list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/medicine/get?id=<medicineId>",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"medicine",
+						"get"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "<medicineId>"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/medicine/get?id=<medicineId>",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/medicine/get?id=<medicineId>",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"medicine",
+						"get"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "<medicineId>"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/dashboard?date=2025-05-13",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/dashboard?date=2025-05-13",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"dashboard"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "2025-05-13"
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
