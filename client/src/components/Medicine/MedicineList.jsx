@@ -66,3 +66,4 @@ export default function MedicineList({ onEdit, onDelete }) {
     </div>
   );
 }
+export default MedicineList;
