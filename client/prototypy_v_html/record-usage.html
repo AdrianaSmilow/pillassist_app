@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zaznamenat užití – PillAssist</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Bootstrap Icons -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="bg-light p-3 mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="dashboard.html" class="text-decoration-none">
+        <i class="bi bi-capsule-pill text-success" style="font-size:3rem;"></i>
+      </a>
+      <h1 class="h3 m-0">Zaznamenat užití</h1>
+      <div style="width:2rem;"></div>
+    </div>
+  </header>
+
+  <!-- MAIN FORM -->
+  <main class="container pb-5">
+    <form id="form-record-usage" class="needs-validation" novalidate>
+      <!-- ALERTY PRO UŽIVATELE -->
+      <div id="form-success" class="alert alert-success" role="alert" style="display:none;">
+        Záznam byl úspěšně uložen
+      </div>
+      <div id="form-error" class="alert alert-danger" role="alert" style="display:none;">
+        Nevyplněná všechna povinná pole!
+      </div>
+
+      <!-- POZNÁMKA O POVINNÝCH POLÍCH -->
+      <div class="mb-4">
+        <small class="text-muted">
+          Pole označená <span class="text-danger">*</span> jsou povinná
+        </small>
+      </div>
+
+      <!-- Výběr léku/suplementu -->
+      <div class="mb-3">
+        <label for="medicineId" class="form-label">
+          Lék / suplement <span class="text-danger">*</span>
+        </label>
+        <select
+          id="medicineId"
+          name="medicineId"
+          class="form-select"
+          required
+        >
+          <option value="">— vyber —</option>
+          <!-- sem načteš seznam z JS / Reactu -->
+        </select>
+      </div>
+
+      <!-- Počet kusů -->
+      <div class="mb-3">
+        <label for="usageCount" class="form-label">
+          Počet kusů <span class="text-danger">*</span>
+        </label>
+        <input
+          type="number"
+          id="usageCount"
+          name="count"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <!-- Datum užití -->
+      <div class="mb-3">
+        <label for="usageDate" class="form-label">Datum užití</label>
+        <input
+          type="date"
+          id="usageDate"
+          name="usageDate"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Poznámka -->
+      <div class="mb-3">
+        <label for="usageNote" class="form-label">Poznámka</label>
+        <textarea
+          id="usageNote"
+          name="note"
+          class="form-control"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <!-- Tlačítko Uložit (zelené) -->
+      <div class="text-center">
+        <button type="submit" class="btn btn-success px-4">
+          Uložit
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <!-- JS PRO VALIDACI A ZOBRAZENÍ ALERTŮ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('form-record-usage');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const valid = form.checkValidity();
+        if (valid) {
+          document.getElementById('form-success').style.display = 'block';
+          document.getElementById('form-error').style.display = 'none';
+        } else {
+          document.getElementById('form-error').style.display = 'block';
+          document.getElementById('form-success').style.display = 'none';
+        }
+        form.classList.add('was-validated');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Přidat nový lék/suplement – PillAssist</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Bootstrap Icons -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+<!-- HEADER -->
+  <header class="bg-light p-3 mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+    <!-- Ikona tablety (zelená) jako odkaz zpět na Dashboard -->
+        <a href="dashboard.html" class="text-decoration-none">
+        <i class="bi bi-capsule-pill text-success" style="font-size:3rem;"></i>
+      </a>
+    <!-- Nadpis -->
+      <h1 class="h3 m-0">Přidat nový lék/suplement</h1>
+    <!-- prázdný blok pro vycentrování -->
+      <div style="width:2rem;"></div>
+    </div>
+  </header>
+
+  <!-- MAIN FORM -->
+  <main class="container pb-5">
+  <form id="form-add-medicine" class="needs-validation" novalidate>
+    <!-- ZPRÁVY PRO UŽIVATELE -->
+    <div id="form-success" class="alert alert-success" role="alert" style="display:none;">
+      Lék byl úspěšně přidán
+    </div>
+    <div id="form-error" class="alert alert-danger" role="alert" style="display:none;">
+      Nevyplněná všechna povinná pole!
+    </div>
+    <!-- Poznámka k povinným polím -->
+      <div class="mb-4">
+        <small class="text-muted">Pole označená <span class="text-danger">*</span> jsou povinná</small>
+      </div>
+    <!-- Kategorie -->
+      <div class="mb-3">
+        <label class="form-label">Kategorie*</label><br/>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="cat-lek" value="Lék" required>
+          <label class="form-check-label" for="cat-lek">Lék</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="cat-sup" value="Suplement">
+          <label class="form-check-label" for="cat-sup">Suplement</label>
+        </div>
+      </div>
+
+    <!-- Povinná pole -->
+      <div class="mb-3">
+        <label for="name" class="form-label">Název*</label>
+        <input type="text" class="form-control" id="name" name="name" required />
+      </div>
+      <div class="mb-3">
+        <label for="count" class="form-label">Počet kusů*</label>
+        <input type="number" class="form-control" id="count" name="count" required />
+      </div>
+      <div class="mb-3">
+        <label for="lowStockThreshold" class="form-label">Hranice nízké zásoby*</label>
+        <input type="number" class="form-control" id="lowStockThreshold" name="lowStockThreshold" required />
+      </div>
+
+      <!-- Volitelná pole -->
+      <div class="mb-3">
+        <label for="activeSubstance" class="form-label">Účinná látka</label>
+        <input type="text" class="form-control" id="activeSubstance" name="activeSubstance" />
+      </div>
+      <div class="mb-3">
+        <label for="strength" class="form-label">Síla dávky</label>
+        <input type="text" class="form-control" id="strength" name="strength" />
+      </div>
+      <div class="mb-3">
+        <label for="dosage" class="form-label">Doporučené dávkování</label>
+        <input type="text" class="form-control" id="dosage" name="dosage" />
+      </div>
+      <div class="mb-3">
+        <label for="note" class="form-label">Poznámka</label>
+        <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+      </div>
+
+      <!-- Tlačítko Uložit (šedé) -->
+      <div class="text-center">
+        <button type="submit" class="btn btn-secondary px-4">Uložit</button>
+      </div>
+    </form>
+  </main>
+  <!-- Oznamující zprávy pro uživatele, po klik na ULOŽIT -->
+  <script>
+    document.getElementById('form-add-medicine').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // jednoduchá validace: všechna required
+      const form = e.target;
+      if (!form.checkValidity()) {
+        // chybná hláška
+        document.getElementById('form-error').style.display = 'block';
+        document.getElementById('form-success').style.display = 'none';
+      } else {
+        // úspěšná hláška
+        document.getElementById('form-success').style.display = 'block';
+        document.getElementById('form-error').style.display = 'none';
+        // lze zde pak čistit formulář nebo cokoli dalšího
+      }
+      form.classList.add('was-validated');
+    });
+  </script>
+</body>
+</html>

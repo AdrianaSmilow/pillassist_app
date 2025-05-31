@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>PillAssist – Dashboard</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <header class="bg-light p-3 mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="dashboard.html" class="text-decoration-none">
+        <i class="bi bi-capsule-pill text-success" style="font-size:3rem;"></i>
+      </a>
+
+      <!-- NADPIS APLIKACE -->
+      <h1 class="h3 m-0">PillAssist</h1>
+      <nav>
+        <!-- TLAČÍTKO - Přidat lék modal -->
+        <button
+          type="button"
+          class="btn btn-secondary me-2"
+          data-bs-toggle="modal"
+          data-bs-target="#addMedicineModal"
+        >
+          Přidat lék
+        </button>
+        <!-- TLAČÍTKO - Record Usage modal -->
+        <button
+          type="button"
+          class="btn btn-success"
+          data-bs-toggle="modal"
+          data-bs-target="#recordUsageModal"
+        >
+          <i class="bi bi-clipboard-plus text-white me-1"></i>Užil jsem
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- DATUM -->
+    <div class="mb-4">
+      <label for="dashboard-date" class="form-label">Datum:</label>
+      <input
+        type="date"
+        id="dashboard-date"
+        class="form-control w-auto d-inline-block"
+        value="2025-04-13"
+      />
+    </div>
+
+    <!-- KATEGORIE: LÉK -->
+    <section id="stock-medicines" class="mb-5">
+      <h2>Lék</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Název</th>
+            <th class="text-center">Užito</th>
+            <th>Zásoba</th>
+            <th aria-label="Stav"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Příklad řádku: dávka NEUŽITÁ -->
+          <tr>
+            <td>Euthyrox</td>
+            <td class="text-center">
+              <!-- clipboard-plus tlačítko: otevře #recordUsageModal -->
+              <button
+                type="button"
+                class="btn btn-link p-0 record-usage"
+                title="Zaznamenat užití"
+                data-bs-toggle="modal"
+                data-bs-target="#recordUsageModal"
+              >
+                <i class="bi bi-clipboard-plus text-dark"></i>
+              </button>
+            </td>
+            <td>5</td>
+            <td></td>
+          </tr>
+          <!-- Příklad řádku: dávka UŽITÁ -->
+          <tr>
+            <td>Omeprazol</td>
+            <td class="text-center">
+              <i class="bi bi-check-circle-fill text-success" title="Užito"></i>
+              <button
+                class="btn btn-link p-0 delete-record"
+                title="Smazat záznam"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+              >
+                <i class="bi bi-x text-danger"></i>
+              </button>
+            </td>
+            <td>5</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- KATEGORIE: SUPLEMENT -->
+    <section id="stock-supplements">
+      <h2>Suplement</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Název</th>
+            <th class="text-center">Užito</th>
+            <th>Zásoba</th>
+            <th aria-label="Stav"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Příklad řádku: dávka NEUŽITÁ -->
+          <tr>
+            <td>Vitamin D</td>
+            <td class="text-center">
+              <button
+                type="button"
+                class="btn btn-link p-0 record-usage"
+                title="Zaznamenat užití"
+                data-bs-toggle="modal"
+                data-bs-target="#recordUsageModal"
+              >
+                <i class="bi bi-clipboard-plus text-dark"></i>
+              </button>
+            </td>
+            <td>2</td>
+            <td></td>
+          </tr>
+          <!-- Příklad řádku: dávka UŽITÁ -->
+          <tr>
+            <td>Vitamin C</td>
+            <td class="text-center">
+              <i class="bi bi-check-circle-fill text-success" title="Užito"></i>
+              <button
+                class="btn btn-link p-0 delete-record"
+                title="Smazat záznam"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+              >
+                <i class="bi bi-x text-danger"></i>
+              </button>
+            </td>
+            <td>2</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- SPODNÍ LIŠTA - Stav zásob - odkaz na low-stock-modal.html -->
+  <footer class="bg-light p-3 fixed-bottom">
+    <div class="container text-center">
+      <button
+        type="button"
+        class="btn btn-warning"
+        data-bs-toggle="modal"
+        data-bs-target="#lowStockModal"
+      >
+        Stav zásob
+      </button>
+    </div>
+  </footer>
+  <!-- kontejner zahrnuje add-medicine-modal.html; record-usage-modal.html; low-stock-modal.html  -->
+  <div id="modals-container">
+      <!-- add-medicine-modal.html -->
+      <div class="modal fade" id="addMedicineModal" tabindex="-1" aria-labelledby="addMedicineLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="addMedicineLabel">Přidat nový lék/suplement</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+              </div>
+              <div class="modal-body">
+                  <form id="form-add-medicine" class="needs-validation" novalidate>
+                  <!-- ZPRÁVY PRO UŽIVATELE -->
+                  <div id="form-success" class="alert alert-success" role="alert" style="display:none;">
+                      Lék byl úspěšně přidán
+                  </div>
+                  <div id="form-error" class="alert alert-danger" role="alert" style="display:none;">
+                      Nevyplněná všechna povinná pole!
+                  </div>
+                  <!-- VÝRAZNÁ POZNÁMKA PRO UŽIVATELE -->
+                  <div class="mb-4">
+                      <small class="text-muted">Pole označená <span class="text-danger">*</span> jsou povinná</small>
+                  </div>
+                  <!-- Kategorie -->
+                  <div class="mb-3">
+                      <label class="form-label">Kategorie*</label><br/>
+                      <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="category" id="cat-lek" value="Lék" required>
+                      <label class="form-check-label" for="cat-lek">Lék</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="category" id="cat-sup" value="Suplement">
+                      <label class="form-check-label" for="cat-sup">Suplement</label>
+                      </div>
+                  </div>
+                  <!-- Povinná pole -->
+                  <div class="mb-3">
+                      <label for="name" class="form-label">Název*</label>
+                      <input type="text" class="form-control" id="name" name="name" required />
+                  </div>
+                  <div class="mb-3">
+                      <label for="count" class="form-label">Počet kusů*</label>
+                      <input type="number" class="form-control" id="count" name="count" required />
+                  </div>
+                  <div class="mb-3">
+                      <label for="lowStockThreshold" class="form-label">Hranice nízké zásoby*</label>
+                      <input type="number" class="form-control" id="lowStockThreshold" name="lowStockThreshold" required />
+                  </div>
+                  <!-- Volitelná pole -->
+                  <div class="mb-3">
+                      <label for="activeSubstance" class="form-label">Účinná látka</label>
+                      <input type="text" class="form-control" id="activeSubstance" name="activeSubstance" />
+                  </div>
+                  <div class="mb-3">
+                      <label for="strength" class="form-label">Síla dávky</label>
+                      <input type="text" class="form-control" id="strength" name="strength" />
+                  </div>
+                  <div class="mb-3">
+                      <label for="dosage" class="form-label">Doporučené dávkování</label>
+                      <input type="text" class="form-control" id="dosage" name="dosage" />
+                  </div>
+                  <div class="mb-3">
+                      <label for="note" class="form-label">Poznámka</label>
+                      <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+                  </div>
+                  </form>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
+                  <button type="submit" form="form-add-medicine" class="btn btn-primary">Uložit</button>
+              </div>
+              </div>
+            </div>
+      </div>
+      <!-- record-usage-modal.html -->
+      <div class="modal fade" id="recordUsageModal" tabindex="-1" aria-labelledby="recordUsageLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="recordUsageLabel">Zaznamenat užití</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+            </div>
+            <div class="modal-body">
+              <form id="form-record-usage" class="needs-validation" novalidate>
+                <!-- Alerty pro uživatele -->
+                <div id="form-success" class="alert alert-success" role="alert" style="display:none;">
+                  Záznam byl úspěšně uložen
+                </div>
+                <div id="form-error" class="alert alert-danger" role="alert" style="display:none;">
+                  Nevyplněná všechna povinná pole!
+                </div>
+                <!-- Poznámka k povinným polím -->
+                <div class="mb-4">
+                  <small class="text-muted">
+                    Pole označená <span class="text-danger">*</span> jsou povinná
+                  </small>
+                </div>
+                <!-- Výběr léku/suplementu -->
+                <div class="mb-3">
+                  <label for="medicineId" class="form-label">
+                    Lék / suplement <span class="text-danger">*</span>
+                  </label>
+                  <select id="medicineId" name="medicineId" class="form-select" required>
+                    <option value="">— vyber —</option>
+                    <!-- načtu seznam z JS / Reactu -->
+                  </select>
+                </div>
+                <!-- Počet kusů -->
+                <div class="mb-3">
+                  <label for="usageCount" class="form-label">
+                    Počet kusů <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" id="usageCount" name="count" class="form-control" required />
+                </div>
+                <!-- Datum užití -->
+                <div class="mb-3">
+                  <label for="usageDate" class="form-label">Datum užití</label>
+                  <input type="date" id="usageDate" name="usageDate" class="form-control" />
+                </div>
+                <!-- Poznámka -->
+                <div class="mb-3">
+                  <label for="usageNote" class="form-label">Poznámka</label>
+                  <textarea id="usageNote" name="note" class="form-control" rows="2"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
+              <button type="submit" form="form-record-usage" class="btn btn-success">Uložit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- low-stock-modal -->     
+      <div class="modal fade" id="lowStockModal" tabindex="-1" aria-labelledby="lowStockLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="lowStockLabel">Nízká zásoba</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Název</th>
+                    <th>Zásoba</th>
+                    <th aria-label="Stav"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- doplnit řádky z JS z Reactu -->
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- confirm-delete-modal.html -->
+      <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="confirmDeleteLabel">Opravdu chcete záznam smazat?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+            </div>
+            <div class="modal-body">
+              Tato akce je nevratná.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ne</button>
+              <button type="button" class="btn btn-danger" id="confirm-delete-btn">Ano</button>
+            </div>
+          </div>
+        </div>
+      </div>     
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!-- add-medicine-modal.html -->
+    <div class="modal fade" id="addMedicineModal" tabindex="-1" aria-labelledby="addMedicineLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="addMedicineLabel">Přidat nový lék/suplement</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+        </div>
+        <div class="modal-body">
+            <form id="form-add-medicine" class="needs-validation" novalidate>
+            <!-- ZPRÁVY PRO UŽIVATELE -->
+            <div id="form-success" class="alert alert-success" role="alert" style="display:none;">
+                Lék byl úspěšně přidán
+            </div>
+            <div id="form-error" class="alert alert-danger" role="alert" style="display:none;">
+                Nevyplněná všechna povinná pole!
+            </div>
+            <!-- VÝRAZNÁ POZNÁMKA PRO UŽIVATELE -->
+            <div class="mb-4">
+                <small class="text-muted">Pole označená <span class="text-danger">*</span> jsou povinná</small>
+            </div>
+            <!-- Kategorie -->
+            <div class="mb-3">
+                <label class="form-label">Kategorie*</label><br/>
+                <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="category" id="cat-lek" value="Lék" required>
+                <label class="form-check-label" for="cat-lek">Lék</label>
+                </div>
+                <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="category" id="cat-sup" value="Suplement">
+                <label class="form-check-label" for="cat-sup">Suplement</label>
+                </div>
+            </div>
+            <!-- Povinná pole -->
+            <div class="mb-3">
+                <label for="name" class="form-label">Název*</label>
+                <input type="text" class="form-control" id="name" name="name" required />
+            </div>
+            <div class="mb-3">
+                <label for="count" class="form-label">Počet kusů*</label>
+                <input type="number" class="form-control" id="count" name="count" required />
+            </div>
+            <div class="mb-3">
+                <label for="lowStockThreshold" class="form-label">Hranice nízké zásoby*</label>
+                <input type="number" class="form-control" id="lowStockThreshold" name="lowStockThreshold" required />
+            </div>
+            <!-- Volitelná pole -->
+            <div class="mb-3">
+                <label for="activeSubstance" class="form-label">Účinná látka</label>
+                <input type="text" class="form-control" id="activeSubstance" name="activeSubstance" />
+            </div>
+            <div class="mb-3">
+                <label for="strength" class="form-label">Síla dávky</label>
+                <input type="text" class="form-control" id="strength" name="strength" />
+            </div>
+            <div class="mb-3">
+                <label for="dosage" class="form-label">Doporučené dávkování</label>
+                <input type="text" class="form-control" id="dosage" name="dosage" />
+            </div>
+            <div class="mb-3">
+                <label for="note" class="form-label">Poznámka</label>
+                <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+            </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
+            <button type="submit" form="form-add-medicine" class="btn btn-primary">Uložit</button>
+        </div>
+        </div>
+    </div>
+    </div>
