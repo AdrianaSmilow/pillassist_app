@@ -10,7 +10,7 @@ import MedicineItem from "./MedicineItem.jsx";
  * MedicineList bere data z kontextu MedicineListContext a vykreslí je v tabulce.
  * Pokud je prázdný seznam, nabídne tlačítko pro přidání nového léku.
  */
-export default function MedicineList({ onEdit, onDelete }) {
+function MedicineList({ onEdit, onDelete }) {
   const { state, data, handlerMap } = useContext(MedicineListContext);
   // state = "ready" | "pending" | "error"
   // data = { itemList: [ ... ] } nebo null

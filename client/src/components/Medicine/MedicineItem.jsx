@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
  * @param {function(Object|null): void} props.onEdit   - Callback pro editaci (nebo přidání, pokud med=null)
  * @param {function(Object): void} props.onDelete - Callback pro smazání položky
  */
-export default function MedicineItem({ med, onEdit, onDelete }) {
+function MedicineItem({ med, onEdit, onDelete }) {
   return (
     <tr>
       {/* Název jako odkaz na detail */}
@@ -43,3 +43,4 @@ export default function MedicineItem({ med, onEdit, onDelete }) {
     </tr>
   );
 }
+export default MedicineItem;

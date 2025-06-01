@@ -9,7 +9,7 @@ import {
   updateStock,
   getLowStockItems,
   acknowledgeLowStock,
-} from "../../api/medicine-api";
+} from "../../api/medicine-api"; //volá backend
 
 // 1) Kontext pro seznam Medicine a souvisejících metod
 export const MedicineListContext = createContext();
@@ -47,7 +47,7 @@ function MedicineListProvider({ children }) {
         pendingId: undefined,
       });
     } catch (err) {
-      // V případě chyby uložíme error
+      // V případě chyby - error
       setMedicineListDto((current) => ({
         ...current,
         state: "error",
@@ -184,7 +184,7 @@ function MedicineListProvider({ children }) {
     }
   }
 
-  // 8) useEffect, který zavolá handleLoad na začátku (podobně jako u FinManova CategoryListProvider)
+  // 8) useEffect, který zavolá handleLoad na začátku)
   useEffect(() => {
     handleLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps

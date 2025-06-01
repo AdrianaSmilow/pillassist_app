@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getMedicineById } from '../../api/medicine-api';
 
-export default function MedicineDetail() {
+function MedicineDetail() {
   const { id } = useParams();             // parametr :id z URL
   const [medicine, setMedicine] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,4 +67,5 @@ export default function MedicineDetail() {
     </div>
   );
 }
+export default MedicineDetail;
 
