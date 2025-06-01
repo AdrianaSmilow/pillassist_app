@@ -7,7 +7,7 @@ import { MedicineListContext } from "./MedicineListProvider.jsx";
 import MedicineItem from "./MedicineItem.jsx";
 
 /**
- * MedicineList bere data z kontextu MedicineListContext a vykreslí je v tabulce.
+ * MedicineList vezme (změna gitHub) data z kontextu MedicineListContext a vykreslí je v tabulce.
  * Pokud je prázdný seznam, nabídne tlačítko pro přidání nového léku.
  */
 function MedicineList({ onEdit, onDelete }) {
