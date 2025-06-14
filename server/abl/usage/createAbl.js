@@ -1,7 +1,11 @@
 // server/abl/usage/createAbl.js
 
 const Ajv = require("ajv");
-const ajv = new Ajv();
+const addFormats = require("ajv-formats");
+
+const ajv = new Ajv({ allErrors: true });
+addFormats(ajv);  // <— registruje validátory pro "date", nakonec nepotřebné, nebudu validovat "date" na backendu
+
 const usageDao   = require("../../dao/usage-dao");
 const medicineDao = require("../../dao/medicine-dao");
 
@@ -10,7 +14,7 @@ const schema = {
   type: "object",
   properties: {
     medicineId: { type: "string" },
-    usageDate:  { type: "string", format: "date" },
+    usageDate:  { type: "string"},
     count:      { type: "integer", minimum: 1 },
     note:       { type: "string" }
   },

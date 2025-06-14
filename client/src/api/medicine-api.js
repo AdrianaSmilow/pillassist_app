@@ -1,92 +1,83 @@
-// pillassist_app/client/src/api/medicine-api.js
+// src/api/medicine-api.js
 
-import { fetchJson } from "./fetch-helper";
+// Obecná funkce Call pro HTTP požadavky (GET, POST, PATCH)
+import Call from "./fetch-helper";
 
-/**
- * GET /medicine/list
- * Backend vrací objekt ve tvaru { stockList: [ {...}, {...}, … ] }.
- * Proto zde rozbalíme `resp.data.stockList`.
- */
-export async function listMedicines() {
-  const resp = await fetchJson("/medicine/list");
-  return resp.data.stockList;
-}
+// Základní adresa backendu
+const BASE_URI = "http://localhost:3000";
 
 /**
- * POST /medicine/create
- * dtoIn musí obsahovat:
- *   {
- *     category: String,
- *     name: String,
- *     count: Number,
- *     lowStockThreshold: Number,
- *     activeSubstance?: String,
- *     doseStrength?: String,
- *     dosageRecommend?: String,
- *     note?: String
- *   }
- * Vrací nově vytvořený objekt léku (pokud backend odpovídá `{ data: { … } }`).
+ * medicineApi – wrapper nad všemi /medicine endpointy
  */
-export async function createMedicine(dtoIn) {
-  const resp = await fetchJson("/medicine/create", {
-    method: "POST",
-    body: JSON.stringify(dtoIn),
-  });
-  return resp.data;
-}
+const medicineApi = {
+  /**
+   * Načte celý seznam léků/suplementů
+   * GET /medicine/list
+   * @param {Object} [params] – nepovinné query parametry
+   * @returns {Promise<{ok: boolean, status: number, data: {stockList: Array}}>}
+   */
+  list: async (params) => {
+    return await Call(BASE_URI, "medicine/list", params, "get");
+  },
 
-/**
- * GET /medicine/get?id=<UUID>
- * Vrací objekt { data: { id, category, name, count, lowStockThreshold, activeSubstance, doseStrength, dosageRecommend, note } }
- */
-export async function getMedicineById(id) {
-  const resp = await fetchJson(`/medicine/get?id=${encodeURIComponent(id)}`);
-  return resp.data;
-}
+  /**
+   * Načte položky s nízkou zásobou
+   * GET /medicine/low-stock
+   * @returns {Promise<{ok: boolean, status: number, data: {stockList: Array}}>}
+   */
+  lowStock: async () => {
+    return await Call(BASE_URI, "medicine/low-stock", null, "get");
+  },
 
-/**
- * PUT /medicine/updateStock
- * dtoIn = { medicineId: String, usedCount: Number }
- * Vrací { data: { newCount: <Number>, … } } nebo podobně.
- */
-export async function updateStock({ medicineId, usedCount }) {
-  const resp = await fetchJson("/medicine/updateStock", {
-    method: "PUT",
-    body: JSON.stringify({ medicineId, usedCount }),
-  });
-  return resp.data;
-}
+  /**
+   * Vytvoří novou položku léku/suplementu
+   * POST /medicine/create
+   * Backend vyžaduje:
+   *   - name               (string)  – název
+   *   - count              (integer) – počáteční množství
+   *   - lowStockThreshold  (integer) – od kdy je zásoba nízká
+   *   - category           (string)  – "Lék" nebo "Suplement"
+   * Volitelně:
+   *   - activeSubstance    (string)
+   *   - strength           (string)
+   *   - dosage             (string)
+   *   - note               (string)
+   *
+   * @param {{
+   *   name: string,
+   *   count: number,
+   *   lowStockThreshold: number,
+   *   category: string,
+   *   activeSubstance?: string,
+   *   strength?: string,
+   *   dosage?: string,
+   *   note?: string
+   * }} dtoIn
+   * @returns {Promise<{ok: boolean, status: number, data: {medicine: Object} | {code:string,message:string,validationErrors:Array}}>}
+   */
+  create: async (dtoIn) => {
+    return await Call(BASE_URI, "medicine/create", dtoIn, "post");
+  },
 
-/**
- * DELETE /medicine/delete?id=<UUID>
- * Vrací { data: { success: true } } nebo podobně.
- */
-export async function deleteMedicine(id) {
-  const resp = await fetchJson(`/medicine/delete?id=${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
-  return resp.data;
-}
+  /**
+   * Potvrdí upozornění na nízkou zásobu
+   * POST /medicine/ack-low-stock
+   * @param {{ id: string }} dtoIn – ID položky
+   * @returns {Promise<{ok: boolean, status: number, data: any}>}
+   */
+  ackLowStock: async (dtoIn) => {
+    return await Call(BASE_URI, "medicine/ack-low-stock", dtoIn, "post");
+  },
 
-/**
- * GET /medicine/lowStock
- * Vrací { data: { stockList: [ { … } ] } } – seznam položek s nízkou zásobou.
- * Zde vracíme rovnou `resp.data.stockList`.
- */
-export async function getLowStockItems() {
-  const resp = await fetchJson("/medicine/lowStock");
-  return resp.data.stockList;
-}
+  /**
+   * Aktualizuje množství na skladě
+   * PATCH /medicine/stock
+   * @param {{ id: string, stock: number }} dtoIn
+   * @returns {Promise<{ok: boolean, status: number, data: any}>}
+   */
+  updateStock: async (dtoIn) => {
+    return await Call(BASE_URI, "medicine/stock", dtoIn, "patch");
+  },
+};
 
-/**
- * PUT /medicine/ackLowStock
- * dtoIn = { medicineId: String }
- * Vrací { data: { success: true } } nebo podobně.
- */
-export async function acknowledgeLowStock(medicineId) {
-  const resp = await fetchJson("/medicine/ackLowStock", {
-    method: "PUT",
-    body: JSON.stringify({ medicineId }),
-  });
-  return resp.data;
-}
+export default medicineApi;
