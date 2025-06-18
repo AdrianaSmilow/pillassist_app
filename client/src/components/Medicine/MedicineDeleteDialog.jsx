@@ -1,56 +1,44 @@
-// pillassist_app/client/src/components/Medicine/MedicineDeleteDialog.jsx
+// client/src/components/Medicine/MedicineDeleteDialog.jsx
 
 import { useContext, useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-
-import { MedicineListContext } from "./MedicineListProvider.jsx";
+import { MedicineListContext } from "./MedicineListProvider";
 
 function MedicineDeleteDialog({ data, onClose }) {
-  const [localError, setLocalError] = useState(null);
-  const { state, pendingId, handlerMap } = useContext(MedicineListContext);
-  const { id, name } = data;
+  const { handlerMap, state } = useContext(MedicineListContext);
+  const [error, setError] = useState(null);
 
-  const onDeleteClick = async () => {
-    const result = await handlerMap.handleDelete({ id });
+  const handleConfirm = async () => {
+    const result = await handlerMap.handleDelete({ id: data.id });
     if (result.ok) {
       onClose();
     } else {
-      setLocalError(result.error);
+      setError(result.data);
     }
   };
 
-  const isPendingForThis = state === "pending" && pendingId === id;
-
   return (
-    <Modal show={true} onHide={onClose}>
+    <Modal show onHide={onClose}>
       <Modal.Header closeButton>
         <Modal.Title>Smazat lék</Modal.Title>
       </Modal.Header>
-
       <Modal.Body>
-        {localError && <Alert variant="danger">{localError}</Alert>}
-        {`Opravdu chcete smazat lék „${name}“?`}
+        {error && <Alert variant="danger">{error.message}</Alert>}
+        Opravdu chcete smazat lék <strong>{data.name}</strong>?
       </Modal.Body>
-
       <Modal.Footer>
-        <Button
-          variant="secondary"
-          onClick={onClose}
-          disabled={isPendingForThis}
-        >
-          Zavřít
+        <Button variant="secondary" onClick={onClose} disabled={state === "pending"}>
+          Zrušit
         </Button>
-        <Button
-          variant="danger"
-          onClick={onDeleteClick}
-          disabled={isPendingForThis}
-        >
+        <Button variant="danger" onClick={handleConfirm} disabled={state === "pending"}>
           Smazat
         </Button>
       </Modal.Footer>
     </Modal>
   );
 }
-export default MedicineDeleteDialog;
+
+export default MedicineDeleteDialog
+

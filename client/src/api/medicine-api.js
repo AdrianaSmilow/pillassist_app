@@ -78,6 +78,25 @@ const medicineApi = {
   updateStock: async (dtoIn) => {
     return await Call(BASE_URI, "medicine/stock", dtoIn, "patch");
   },
+
+    /**
+   * Aktualizuje metadata léku
+   * POST /medicine/update
+   * @param {{ id: string, name?: string, count?: number, category?: string }} dtoIn
+   */
+  update: async (dtoIn) => {
+    return await Call(BASE_URI, "medicine/update", dtoIn, "post");
+  },
+
+    /**
+   * Smaže lék
+   * POST /medicine/delete
+   * @param {{ id: string }} dtoIn
+   */
+  delete: async (dtoIn) => {
+    return await Call(BASE_URI, "medicine/delete", dtoIn, "post");
+  },
+
 };
 
 export default medicineApi;

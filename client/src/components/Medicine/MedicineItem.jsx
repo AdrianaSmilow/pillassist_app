@@ -1,46 +1,36 @@
-// pillassist_app/client/src/components/Medicine/MedicineItem.jsx
+// src/components/Medicine/MedicineItem.jsx
 
-import React from "react";
+import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Pencil } from "react-bootstrap-icons";
 
 /**
- * MedicineItem vykreslí jeden řádek v tabulce léků.
- *
- * @param {Object} props
- * @param {Object} props.med         - Objekt léku { id, name, category, count, … }
- * @param {function(Object|null): void} props.onEdit   - Callback pro editaci (nebo přidání, pokud med=null)
- * @param {function(Object): void} props.onDelete - Callback pro smazání položky
+ * MedicineItem – jedna karta / řádek seznamu.
+ * Kliknutím na název nebo na tužku se přejde do detailu.
  */
-function MedicineItem({ med, onEdit, onDelete }) {
+function MedicineItem({ med }) {
+  const navigate = useNavigate();
+
   return (
-    <tr>
-      {/* Název jako odkaz na detail */}
-      <td>
-        <Link to={`/medicine/${med.id}`} className="text-decoration-none">
-          {med.name}
-        </Link>
-      </td>
-      <td>{med.category}</td>
-      <td>{med.count}</td>
-      <td>
+    <Card className="mb-3">
+      <Card.Body className="d-flex justify-content-between align-items-center">
+        <div style={{ cursor: "pointer" }} onClick={() => navigate(`/medicine/${med.id}`)}>
+          <Card.Title>{med.name}</Card.Title>
+          <Card.Text>
+            Zásoba: {med.count}  |  Práh: {med.lowStockThreshold}
+          </Card.Text>
+        </div>
         <Button
           variant="outline-primary"
-          size="sm"
-          className="me-2"
-          onClick={() => onEdit(med)}
+          onClick={() => navigate(`/medicine/${med.id}`)}
+          title="Upravit informace"
         >
-          Edit
+          <Pencil />
         </Button>
-        <Button
-          variant="outline-danger"
-          size="sm"
-          onClick={() => onDelete(med)}
-        >
-          Delete
-        </Button>
-      </td>
-    </tr>
+      </Card.Body>
+    </Card>
   );
 }
-export default MedicineItem;
+
+export default MedicineItem

@@ -1,207 +1,142 @@
-// Medicine/MedicineListProvider
-// pillassist_app/client/src/components/Medicine/MedicineListProvider.jsx
+// src/components/Medicine/MedicineListProvider.jsx
 
-import React, { createContext, useState, useEffect } from "react";
-import {
-  listMedicines,
-  createMedicine,
-  deleteMedicine,
-  updateStock,
-  getLowStockItems,
-  acknowledgeLowStock,
-} from "../../api/medicine-api"; //volá backend
+import { createContext, useState, useEffect } from "react";
+// Wrapper nad všemi /medicine endpointy (list, create, lowStock, ackLowStock, updateStock)
+import medicineApi from "../../api/medicine-api";
 
-// 1) Kontext pro seznam Medicine a souvisejících metod
+// Vytvoří Context, přes který budou komponenty číst stav a volat handlery
 export const MedicineListContext = createContext();
 
-/**
- * MedicineListProvider 
- * Udržuje stav všech léků, načítá je z backendu, umožňuje CRUD operace a předává
- * data (včetně stavu pending/ready/error) do potomek.
- */
 function MedicineListProvider({ children }) {
-  // Stav, který sleduje načtení celého seznamu
-  const [medicineListDto, setMedicineListDto] = useState({
-    state: "ready", // one of "ready" | "pending" | "error"
-    data: null,     // očekává se { itemList: [ { id, name, category, count, … }, … ] }
+  // medicineDto drží:
+  // - state: "ready" | "pending" | "error"
+  // - data: { stockList: [ ... ] }
+  // - error: případná chybová zpráva
+  const [medicineDto, setMedicineDto] = useState({
+    state: "ready",
+    data: null,
     error: null,
-    pendingId: undefined, // pokud je třeba označit konkrétní položku jako "pending" (např. delete/updateStock)
   });
+  // pendingId – ID položky, u které právě probíhá operace (updateStock nebo ackLowStock)
+  const [pendingId, setPendingId] = useState(null);
 
-  // Stav pro vybraný měsíc/datum 
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
-
-  // 2) handleLoad – načte aktuální seznam léků
+  /**
+   * Načte celý seznam léků a uloží ho do stavu.
+   */
   async function handleLoad() {
-    setMedicineListDto((current) => ({ ...current, state: "pending" }));
-    try {
-      // Volání na GET /medicine/list
-      const items = await listMedicines();
-      // Po úspěchu uloží data
-      setMedicineListDto({
-        state: "ready",
-        data: { itemList: items },
-        error: null,
-        pendingId: undefined,
-      });
-    } catch (err) {
-      // V případě chyby - error
-      setMedicineListDto((current) => ({
-        ...current,
-        state: "error",
-        error: err.message || "Chyba při načítání seznamu medicín",
-      }));
-    }
+    setMedicineDto(curr => ({ ...curr, state: "pending" }));
+    const result = await medicineApi.list();
+    setMedicineDto(curr =>
+      result.ok
+        ? { state: "ready", data: result.data, error: null }
+        : { state: "error", data: curr.data, error: result.data }
+    );
   }
 
-  // 3) handleCreate – vytvoří nový lék (POST /medicine/create)
+  /**
+   * Vytvoří nový záznam léku.
+   * dtoIn musí obsahovat { name, count, lowStockThreshold, category, … }
+   */
   async function handleCreate(dtoIn) {
-    // Před voláním vytvoření změníme stav na "pending"
-    setMedicineListDto((current) => ({ ...current, state: "pending" }));
-    try {
-      const created = await createMedicine(dtoIn);
-      // Po úspěchu přidáme do current.data.itemList novou položku a obnovíme seznam
-      setMedicineListDto((current) => {
-        const updatedList = current.data
-          ? [...current.data.itemList, created]
-          : [created];
-        return {
-          state: "ready",
-          data: { itemList: updatedList },
-          error: null,
-          pendingId: undefined,
-        };
-      });
-      return { ok: true };
-    } catch (err) {
-      setMedicineListDto((current) => ({
-        ...current,
-        state: "error",
-        error: err.message || "Chyba při vytváření léku",
-      }));
-      return { ok: false, error: err.message };
-    }
+    setMedicineDto(curr => ({ ...curr, state: "pending" }));
+    const result = await medicineApi.create(dtoIn);
+    setMedicineDto(curr => {
+      if (result.ok) {
+        // Přidáme nově vytvořenou položku (result.data.medicine)
+        const newList = [...(curr.data?.stockList || []), result.data.medicine];
+        return { state: "ready", data: { stockList: newList }, error: null };
+      } else {
+        return { state: "error", data: curr.data, error: result.data };
+      }
+    });
+    return result;
   }
 
-  // 4) handleUpdateStock – aktualizuje stav zásob léku (PUT /medicine/updateStock)
+  /**
+   * Aktualizuje stav zásoby (delta může být kladná i záporná).
+   * dtoIn = { id, delta }
+   */
   async function handleUpdateStock(dtoIn) {
-    // dtoIn = { medicineId, usedCount }
-    setMedicineListDto((current) => ({
-      ...current,
-      state: "pending",
-      pendingId: dtoIn.medicineId,
-    }));
-    try {
-      const updated = await updateStock(dtoIn);
-      // Po úspěchu najdeme položku v seznamu a aktualizujeme count
-      setMedicineListDto((current) => {
-        const idx = current.data.itemList.findIndex(
-          (m) => m.id === dtoIn.medicineId
+    setPendingId(dtoIn.id);
+    setMedicineDto(curr => ({ ...curr, state: "pending" }));
+    const result = await medicineApi.updateStock(dtoIn);
+    setMedicineDto(curr => {
+      if (result.ok) {
+        // backend vrací { medicineId, currentStock }
+        // proto v curr.data.stockList najdeme dané id a změníme jen count
+        const list = curr.data.stockList.map(med =>
+          med.id === result.data.medicineId
+            ? { ...med, count: result.data.currentStock }
+            : med
         );
-        if (idx === -1) {
-          // Nelze najít, vrátíme původní
-          return {
-            ...current,
-            state: "ready",
-            pendingId: undefined,
-          };
-        }
-        // Kopie seznamu a update konkrétní položky
-        const copyList = current.data.itemList.slice();
-        copyList[idx] = { ...copyList[idx], count: updated.newCount };
-        return {
-          state: "ready",
-          data: { itemList: copyList },
-          error: null,
-          pendingId: undefined,
-        };
-      });
-      return { ok: true };
-    } catch (err) {
-      setMedicineListDto((current) => ({
-        ...current,
-        state: "error",
-        error: err.message || "Chyba při aktualizaci zásoby",
-        pendingId: undefined,
-      }));
-      return { ok: false, error: err.message };
-    }
+        return { state: "ready", data: { stockList: list }, error: null };
+      } else {
+        return { state: "error", data: curr.data, error: result.data };
+      }
+    });
+    setPendingId(null);
+    return result;
   }
 
-  // 5) handleDelete – smaže lék (DELETE /medicine/delete)
+  /**
+   * Potvrdí upozornění na nízkou zásobu (exclamation mark).
+   * dtoIn = { medicineId }
+   */
+  async function handleAckLowStock(dtoIn) {
+    setPendingId(dtoIn.medicineId);
+    setMedicineDto(curr => ({ ...curr, state: "pending" }));
+    const result = await medicineApi.ackLowStock(dtoIn);
+    setMedicineDto(curr => {
+      if (result.ok) {
+        // backend vrací { medicineId, ordered }
+        const list = curr.data.stockList.map(med =>
+          med.id === result.data.medicineId
+            ? { ...med, ordered: result.data.ordered }
+            : med
+        );
+        return { state: "ready", data: { stockList: list }, error: null };
+      } else {
+        return { state: "error", data: curr.data, error: result.data };
+      }
+    });
+    setPendingId(null);
+    return result;
+  }
+
+  /**
+   * Smaže lék a aktualizuje seznam
+   * dtoIn = { id }
+   */
   async function handleDelete(dtoIn) {
-    // dtoIn = { id }
-    setMedicineListDto((current) => ({
-      ...current,
-      state: "pending",
-      pendingId: dtoIn.id,
-    }));
-    try {
-      const result = await deleteMedicine(dtoIn.id);
-      // Po úspěšném smazání odstraníme položku z itemList
-      setMedicineListDto((current) => {
-        const filtered = current.data.itemList.filter(
-          (m) => m.id !== dtoIn.id
-        );
-        return {
-          state: "ready",
-          data: { itemList: filtered },
-          error: null,
-          pendingId: undefined,
-        };
-      });
-      return { ok: true };
-    } catch (err) {
-      setMedicineListDto((current) => ({
-        ...current,
-        state: "error",
-        error: err.message || "Chyba při mazání léku",
-        pendingId: undefined,
-      }));
-      return { ok: false, error: err.message };
+    setPendingId(dtoIn.id);
+    setMedicineDto(curr => ({ ...curr, state: "pending" }));
+    const result = await medicineApi.delete(dtoIn);
+    if (result.ok) {
+      // Odstraní jej z listu
+      const list = medicineDto.data.stockList.filter(m => m.id !== dtoIn.id);
+      setMedicineDto({ state: "ready", data: { stockList: list }, error: null });
+    } else {
+      setMedicineDto(curr => ({ state: "error", data: curr.data, error: result.data }));
     }
+    setPendingId(null);
+    return result;
   }
 
-  // 6) handleLowStock – načtení položek s nízkou zásobou (GET /medicine/lowStock)
-  async function handleLowStock() {
-    try {
-      const lowItems = await getLowStockItems();
-      return { ok: true, data: lowItems };
-    } catch (err) {
-      return { ok: false, error: err.message };
-    }
-  }
-
-  // 7) handleAcknowledgeLowStock – potvrdí, že uživatel viděl nízkou zásobu (PUT /medicine/ackLowStock)
-  async function handleAcknowledgeLowStock(id) {
-    try {
-      await acknowledgeLowStock(id);
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err.message };
-    }
-  }
-
-  // 8) useEffect, který zavolá handleLoad na začátku)
+  // Načte data jednou při mountu
   useEffect(() => {
     handleLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 9) Definice hodnoty, kterou provider předává do Contextu
+  // Hodnoty, které poskytuje
   const value = {
-    ...medicineListDto,
-    selectedDate,
-    setSelectedDate,
-    handlerMap: {
+    ...medicineDto,       // state, data, error
+    pendingId,            // ID probíhající operace
+    handlerMap: {         // funkce pro CRUD a acknowledge
       handleLoad,
       handleCreate,
       handleUpdateStock,
-      handleDelete,
-      handleLowStock,
-      handleAcknowledgeLowStock,
+      handleAckLowStock,
+      handleDelete, 
     },
   };
 
@@ -211,4 +146,5 @@ function MedicineListProvider({ children }) {
     </MedicineListContext.Provider>
   );
 }
+
 export default MedicineListProvider;

@@ -1,54 +1,62 @@
-// pillassist_app/client/src/layout.jsx
+// src/LAYOUT.JSX
 
-import { useContext, useEffect, useState } from "react";
-import Container from "react-bootstrap/Container";   // <- tady je ten import
+import { useEffect, useState } from "react";
+import Container from "react-bootstrap/Container";
 import { Outlet, useNavigate } from "react-router-dom";
 
-import NavBar from "./navbar.jsx";
-import Footer from "./footer.jsx";
-import { MedicineListContext } from "./components/Medicine/MedicineListProvider.jsx";
+import NavBar from "./navbar";
+import Footer from "./footer";
+import MedicineForm from "./components/Medicine/MedicineForm";
+import UsageForm from "./components/Usage/UsageForm";
+import medicineApi from "./api/medicine-api";
 
 function Layout() {
   const navigate = useNavigate();
-  const { state, handlerMap } = useContext(MedicineListContext);
+  const [showMedForm, setShowMedForm] = useState(false);
+  const [showUsageForm, setShowUsageForm] = useState(false);
   const [lowStockCount, setLowStockCount] = useState(0);
 
+  // Načteme počet položek s nízkou zásobou
   useEffect(() => {
-    if (state === "ready") {
-      (async () => {
-        const res = await handlerMap.handleLowStock();
-        if (res.ok) {
-          setLowStockCount(res.data.length);
-        }
-      })();
-    }
-  }, [state, handlerMap]);
+    (async () => {
+      const res = await medicineApi.lowStock();
+      if (res.ok) {
+        setLowStockCount(res.data.stockList.length);
+      }
+    })();
+  }, []);
 
   return (
     <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
-      {/* 1) Navigační lišta nahoře */}
-      <NavBar />
+      {/* Horní lišta */}
+      <NavBar
+        onAddMedicine={() => setShowMedForm(true)}
+        onRecordUsage={() => setShowUsageForm(true)}
+      />
 
-      {/* 2) Hlavní obsah: Outlet vykreslí Dashboard, MedicineDetail atd. */}
+      {/* Hlavní obsah */}
       <Container
         fluid
         className="flex-grow-1 p-0"
-        style={{
-          paddingTop: "56px",   // odsazení, aby obsah nebyl schovaný pod Navbar
-          paddingBottom: "56px" // odsazení, aby obsah nezasahoval do Footer
-        }}
+        style={{ paddingTop: "56px", paddingBottom: "56px" }}
       >
         <Outlet />
       </Container>
 
-      {/* 3) Footer dolní lišta */}
+      {/* Spodní lišta */}
       <Footer
         onLowStockClick={() => navigate("/lowstock")}
         lowStockCount={lowStockCount}
       />
+
+      {/* Modály */}
+      {showMedForm && <MedicineForm onClose={() => setShowMedForm(false)} />}
+      {showUsageForm && <UsageForm onClose={() => setShowUsageForm(false)} />}
     </div>
   );
 }
-export default Layout;
+
+export default Layout
+
 
 

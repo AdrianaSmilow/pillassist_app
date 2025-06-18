@@ -1,34 +1,87 @@
-// pillassist_app/client/src/Dashboard.jsx
+// src/Dashboard.jsx
 
-import React, { useContext, useState, useEffect } from "react";
-import MedicineListProvider, { MedicineListContext } from "./components/Medicine/MedicineListProvider.jsx";
-import MedicineList from "./components/Medicine/MedicineList.jsx";
-import MedicineForm from "./components/Medicine/MedicineForm.jsx";             // připravíme ho později
-import MedicineDeleteDialog from "./components/Medicine/MedicineDeleteDialog.jsx"; // připravíme ho později
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Container from "react-bootstrap/Container";
+import Button from "react-bootstrap/Button";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+import MedicineListProvider from "./components/Medicine/MedicineListProvider";
+import MedicineListContent from "./components/Medicine/MedicineListContent";
+import MedicineForm from "./components/Medicine/MedicineForm";
+import MedicineDeleteDialog from "./components/Medicine/MedicineDeleteDialog";
 
 function Dashboard() {
-  // State pro otevření/uzavření modalu pro formulář (Add/Edit)
+  const navigate = useNavigate();
+
+  // Ovládání modalů
   const [formData, setFormData] = useState(null);
-  // State pro potvrzovací dialog smazání
   const [deleteData, setDeleteData] = useState(null);
+
+  // Vybrané datum pro zobrazení, které se předá do MedicineListContent
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
     <MedicineListProvider>
-      <DashboardContent
-        onEdit={(med) => setFormData(med)}
-        onDelete={(med) => setDeleteData(med)}
-      />
+      <Container fluid className="mt-4">
 
-      {/* Pokud je formData != null, vykreslí se modal pro Add/Edit */}
-      {formData !== null && (
+        {/* --- Horní ovládací řádek --- */}
+        <div className="d-flex align-items-center mb-3">
+          {/* Přidat nový lék */}
+          <Button variant="primary" onClick={() => setFormData({})}>
+            Přidat lék
+          </Button>
+
+          {/* Zaznamenat užití */}
+          <Button
+            variant="secondary"
+            className="ms-2"
+            onClick={() => {
+              /* Otevře UsageForm modal – ještě nedodělané */
+            }}
+          >
+            Užil jsem
+          </Button>
+
+          {/* Výběr data */}
+          <div className="ms-auto">
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              dateFormat="dd.MM.yyyy"
+            />
+          </div>
+        </div>
+
+        {/* --- Seznam léků --- */}
+        <MedicineListContent
+          selectedDate={selectedDate}
+          onEdit={(med) => setFormData(med)}
+          onDelete={(med) => setDeleteData(med)}
+        />
+
+        {/* --- Tlačítko nízké zásoby --- */}
+        <div className="text-center mt-4">
+          <Button
+            variant="outline-danger"
+            onClick={() => navigate("/lowstock")}
+          >
+            Nízká zásoba
+          </Button>
+        </div>
+      </Container>
+
+      {/* --- Modal pro přidání/úpravu léku --- */}
+      {formData && (
         <MedicineForm
           initialData={formData}
           onClose={() => setFormData(null)}
         />
       )}
 
-      {/* Pokud je deleteData != null, vykreslí se potvrzovací dialog */}
-      {deleteData !== null && (
+      {/* --- Dialog pro potvrzení smazání léku --- */}
+      {deleteData && (
         <MedicineDeleteDialog
           data={deleteData}
           onClose={() => setDeleteData(null)}
@@ -37,32 +90,5 @@ function Dashboard() {
     </MedicineListProvider>
   );
 }
-export default Dashboard;
 
-function DashboardContent({ onEdit, onDelete }) {
-  const { state, data, handlerMap } = useContext(MedicineListContext);
-  // state: "ready" | "pending" | "error"
-  // data.itemList: pole medicín
-  // handlerMap.handleDelete, handleCreate, atd.
-
-  if (state === "pending") {
-    return <p>Načítám léky…</p>;
-  }
-  if (state === "error") {
-    return (
-      <div className="alert alert-danger">
-        Chyba při načítání léků, zkuste to znovu.
-      </div>
-    );
-  }
-
-  // data.itemList je pole léků
-  const medicines = data ? data.itemList : [];
-
-  return (
-    <div className="container mt-4">
-      <MedicineList onEdit={onEdit} onDelete={onDelete} />
-    </div>
-  );
-}
-export default Dashboard; 
+export default Dashboard

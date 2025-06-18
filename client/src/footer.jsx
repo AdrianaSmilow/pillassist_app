@@ -1,28 +1,33 @@
-// pillassist_app/client/src/footer.jsx
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
+// src/footer.jsx
 
-// Footer s tlačítkem „Stav zásob“ 
+import { Navbar, Container, Nav } from "react-bootstrap";
+import { CapsulePill } from "react-bootstrap-icons";
+
 function Footer({ onLowStockClick, lowStockCount }) {
   return (
-    <footer className="bg-light py-3 mt-auto">
-      <Container>
-        <Row className="align-items-center">
-          <Col xs={12} md={6} className="text-center text-md-end">
-            <Button variant="warning" onClick={onLowStockClick}>
-              Stav zásob
-              {lowStockCount > 0 && (
-                <span className="badge bg-danger ms-2">
-                  {lowStockCount}
-                </span>
-              )}
-            </Button>
-          </Col>
-        </Row>
+    <Navbar
+      fixed="bottom"
+      style={{ backgroundColor: "#d4f0d4" }} // světle zelené
+      variant="light"
+      className="border-top"
+    >
+      <Container className="justify-content-between">
+        <span style={{ color: "#155724" }}>
+          &copy; {new Date().getFullYear()} PillAssist
+        </span>
+        <Nav>
+          <Nav.Link
+            onClick={onLowStockClick}
+            className="d-flex align-items-center"
+            style={{ color: "#155724" }}
+          >
+            <CapsulePill className="me-1" />
+            {lowStockCount} 
+          </Nav.Link>
+        </Nav>
       </Container>
-    </footer>
+    </Navbar>
   );
 }
-export default Footer;
+
+export default Footer

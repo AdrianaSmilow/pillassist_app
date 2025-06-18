@@ -10,6 +10,9 @@ import Dashboard from "./Dashboard";
 import MedicineDetail from "./components/Medicine/MedicineDetail.jsx";
 // 4) MedicineStock je default export z ./components/Medicine/MedicineStock.jsx
 import MedicineStock from "./components/Medicine/MedicineStock.jsx";
+// 5) UsageHistoryPage je default export 
+import UsageHistoryPage from "./components/Usage/UsageHistoryPage";
+
 
 function App() {
   return (
@@ -20,6 +23,8 @@ function App() {
           <Route index element={<Dashboard />} />
           {/* detail léku */}
           <Route path="medicine/:id" element={<MedicineDetail />} />
+          {/* historie užití */}
+          <Route path="medicine/:id/usage-history" element={<UsageHistoryPage />} />
           {/* celkový přehled všech léků */}
           <Route path="lowstock" element={<MedicineStock />} />
         </Route>

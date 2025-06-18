@@ -1,8 +1,8 @@
 {
   "name": "Testovací lék",
-  "count": 99,
+  "count": 79,
   "lowStockThreshold": 10,
   "category": "Lék",
   "id": "e881853aba373ef23a913bd42321d8bb",
-  "ordered": false
+  "ordered": true
 }
