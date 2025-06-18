@@ -1,76 +1,121 @@
 // src/components/Medicine/MedicineForm.jsx
-
-import { useContext, useState } from "react";
-// Bootstrap komponenty
-import Modal from "react-bootstrap/Modal";
+import { useState, useEffect } from "react";
+import Modal  from "react-bootstrap/Modal";
+import Form   from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Alert from "react-bootstrap/Alert";
-// Kontext pro CRUD přes medicineApi
-import { MedicineListContext } from "./MedicineListProvider";
+import Alert  from "react-bootstrap/Alert";
 
-function MedicineForm({ onClose }) {
-  // Z contextu získáme:
-  // - state: řídí disable tlačítek při probíhající operaci
-  // - error: chybová zpráva z backendu
-  // - handlerMap.handleCreate: funkce pro vytvoření záznamu
-  const { state, error, handlerMap } = useContext(MedicineListContext);
-
-  // Stav pro hodnoty formuláře
+/**
+ * Props:
+ *  - show: boolean
+ *  - onHide: () => void
+ *  - onSubmit: (dto) => Promise<{ ok, data, status }>
+ *  - initialData?: {
+ *      id?,
+ *      category?,
+ *      name?,
+ *      count?,
+ *      lowStockThreshold?,
+ *      activeSubstance?,
+ *      strength?,
+ *      dosage?,
+ *      note?
+ *    }
+ */
+function MedicineForm({ show, onHide, onSubmit, initialData = {} }) {
   const [values, setValues] = useState({
-    name: "",
-    count: "",
-    lowStockThreshold: "",
-    category: "Lék",       // výchozí kategorie
-    activeSubstance: "",
-    strength: "",
-    dosage: "",
-    note: "",
+    category:          initialData.category          || "Lék",
+    name:              initialData.name              || "",
+    count:             initialData.count             || 0,
+    lowStockThreshold: initialData.lowStockThreshold || 0,
+    activeSubstance:   initialData.activeSubstance   || "",
+    strength:          initialData.strength          || "",
+    dosage:            initialData.dosage            || "",
+    note:              initialData.note              || "",
   });
+  const [error, setError] = useState(null);
 
-  // Zpracování odeslání formuláře
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Připraví DTO, upraví čísla
-    const dto = {
-      name: values.name,
-      count: Number(values.count),
-      lowStockThreshold: Number(values.lowStockThreshold),
-      category: values.category,
-      // Volitelná pole přidáme jen pokud nejsou prázdná
-      ...(values.activeSubstance && { activeSubstance: values.activeSubstance }),
-      ...(values.strength && { strength: values.strength }),
-      ...(values.dosage && { dosage: values.dosage }),
-      ...(values.note && { note: values.note }),
-    };
-    // Volá backend
-    const result = await handlerMap.handleCreate(dto);
-    if (result.ok) {
-      onClose(); // zavřeme modal, když to proběhlo OK
-    }
-    // v chybovém případě ponecháme modal otevřený a zobrazíme Alert
+  // Synchronizace při změně initialData (např. edit)
+  useEffect(() => {
+    setValues({
+      category:          initialData.category          || "Lék",
+      name:              initialData.name              || "",
+      count:             initialData.count             || 0,
+      lowStockThreshold: initialData.lowStockThreshold || 0,
+      activeSubstance:   initialData.activeSubstance   || "",
+      strength:          initialData.strength          || "",
+      dosage:            initialData.dosage            || "",
+      note:              initialData.note              || "",
+    });
+  }, [initialData]);
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setValues(v => ({ ...v, [name]: value }));
   };
 
-  // Změna hodnot v políčkách
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setValues(curr => ({ ...curr, [name]: value }));
+  const handleSave = async e => {
+    e.preventDefault();
+    setError(null);
+    const dto = {
+      ...values,
+      count:             Number(values.count),
+      lowStockThreshold: Number(values.lowStockThreshold),
+      id:                initialData.id,
+    };
+    const res = await onSubmit(dto);
+    if (!res.ok) {
+      setError(res.data?.message || "Chyba při ukládání léku.");
+    } else {
+      onHide();
+    }
   };
 
   return (
-    <Modal show={true} onHide={onClose}>
-      <Form onSubmit={handleSubmit}>
+    <Modal show={show} onHide={onHide} backdrop="static" keyboard>
+      <Form onSubmit={handleSave}>
         <Modal.Header closeButton>
-          <Modal.Title>Přidat nový lék / suplement</Modal.Title>
+          <Modal.Title>
+            {initialData.id ? "Upravit lék/suplement" : "Přidat nový lék/suplement"}
+          </Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          {/* Chybová hláška z backendu */}
-          {state === "error" && (
-            <Alert variant="danger">{error?.message}</Alert>
-          )}
+          {/* 1) Info o povinných polích */}
+          <p className="text-muted mb-3">
+            Pole označená <span className="text-danger">*</span> jsou povinná
+          </p>
+          {error && <Alert variant="danger">{error}</Alert>}
 
-          {/* Název */}
+          {/* 2) Kategorie jako první */}
+          <Form.Group className="mb-3">
+            <Form.Label>Kategorie *</Form.Label>
+            <div>
+              <Form.Check
+                inline
+                label="Lék"
+                name="category"
+                type="radio"
+                id="cat-med"
+                value="Lék"
+                checked={values.category === "Lék"}
+                onChange={handleChange}
+                required
+              />
+              <Form.Check
+                inline
+                label="Suplement"
+                name="category"
+                type="radio"
+                id="cat-sup"
+                value="Suplement"
+                checked={values.category === "Suplement"}
+                onChange={handleChange}
+              />
+            </div>
+          </Form.Group>
+
+          {/* 3) Povinné políčka */}
           <Form.Group className="mb-3">
             <Form.Label>Název *</Form.Label>
             <Form.Control
@@ -78,53 +123,35 @@ function MedicineForm({ onClose }) {
               name="name"
               value={values.name}
               onChange={handleChange}
-              disabled={state === "pending"}
               required
             />
           </Form.Group>
 
-          {/* Počáteční zásoba */}
           <Form.Group className="mb-3">
-            <Form.Label>Počáteční zásoba *</Form.Label>
+            <Form.Label>Počet kusů *</Form.Label>
             <Form.Control
               type="number"
               name="count"
               value={values.count}
               onChange={handleChange}
-              disabled={state === "pending"}
               required
+              min={0}
             />
           </Form.Group>
 
-          {/* Hranice nízké zásoby */}
           <Form.Group className="mb-3">
-            <Form.Label>Hranice nízké zásoby *</Form.Label>
+            <Form.Label>Hranice nízké zásoby v kusech *</Form.Label>
             <Form.Control
               type="number"
               name="lowStockThreshold"
               value={values.lowStockThreshold}
               onChange={handleChange}
-              disabled={state === "pending"}
               required
+              min={0}
             />
           </Form.Group>
 
-          {/* Kategorie */}
-          <Form.Group className="mb-3">
-            <Form.Label>Kategorie *</Form.Label>
-            <Form.Select
-              name="category"
-              value={values.category}
-              onChange={handleChange}
-              disabled={state === "pending"}
-              required
-            >
-              <option value="Lék">Lék</option>
-              <option value="Suplement">Suplement</option>
-            </Form.Select>
-          </Form.Group>
-
-          {/* Volitelná pole */}
+          {/* 4) Nepovinné textové pole další informace */}
           <Form.Group className="mb-3">
             <Form.Label>Účinná látka</Form.Label>
             <Form.Control
@@ -132,29 +159,26 @@ function MedicineForm({ onClose }) {
               name="activeSubstance"
               value={values.activeSubstance}
               onChange={handleChange}
-              disabled={state === "pending"}
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Síla dávky</Form.Label>
+            <Form.Label>Síla látky na dávku</Form.Label>
             <Form.Control
               type="text"
               name="strength"
               value={values.strength}
               onChange={handleChange}
-              disabled={state === "pending"}
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Dávkování</Form.Label>
+            <Form.Label>Doporučené dávkování</Form.Label>
             <Form.Control
               type="text"
               name="dosage"
               value={values.dosage}
               onChange={handleChange}
-              disabled={state === "pending"}
             />
           </Form.Group>
 
@@ -166,24 +190,15 @@ function MedicineForm({ onClose }) {
               name="note"
               value={values.note}
               onChange={handleChange}
-              disabled={state === "pending"}
             />
           </Form.Group>
         </Modal.Body>
 
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={state === "pending"}
-          >
-            Zavřít
+          <Button variant="secondary" onClick={onHide}>
+            Zrušit
           </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={state === "pending"}
-          >
+          <Button variant="primary" type="submit">
             Uložit
           </Button>
         </Modal.Footer>

@@ -2,23 +2,21 @@
 
 /**
  * Funkce pro volání HTTP endpointů.
- * @param {string} baseUri - základní URI backendu
- * @param {string} useCase - cesta za baseUri (např. "medicine/list")
- * @param {object|null} dtoIn - vstupní data (query params pro GET, body pro ostatní metody)
- * @param {string} method - HTTP metoda: "get", "post", "patch", "delete"
+ * @param {string} baseUri – základní URI backendu
+ * @param {string} useCase  – cesta za baseUri (např. "medicine/list")
+ * @param {object|null} dtoIn – query params / body
+ * @param {string} method    – "get" | "post" | "patch" | "delete"
  */
 async function Call(baseUri, useCase, dtoIn, method) {
+  const url = `/${useCase}`;
   let response;
-  const url = `${baseUri}/${useCase}`;
 
   if (!method || method.toLowerCase() === "get") {
-    // GET: data do query stringu
     const query = dtoIn && Object.keys(dtoIn).length
       ? `?${new URLSearchParams(dtoIn)}`
       : "";
     response = await fetch(url + query);
   } else {
-    // POST, PATCH, DELETE: data v JSON těle
     response = await fetch(url, {
       method: method.toUpperCase(),
       headers: { "Content-Type": "application/json" },
@@ -30,32 +28,25 @@ async function Call(baseUri, useCase, dtoIn, method) {
   return { ok: response.ok, status: response.status, data };
 }
 
-// Základní adresa backendu
+// Default exportujeme funkci Call
+export default Call;
+
+// A zároveň pojmenovaně exportujeme agregátor, pokud ho někde chcete využít
 const baseUri = "http://localhost:3000";
-
-/**
- * FetchHelper seskupuje metody pro všechny entity v aplikaci
- */
-const FetchHelper = {
-  // Metody pro práci s léky
+export const FetchHelper = {
   medicine: {
-    list: async (params) => await Call(baseUri, "medicine/list", params, "get"),
-    get: async (dtoIn) => await Call(baseUri, "medicine/get", dtoIn, "get"),
-    create: async (dtoIn) => await Call(baseUri, "medicine/create", dtoIn, "post"),
-    lowStock: async () => await Call(baseUri, "medicine/low-stock", null, "get"),
-    ackLowStock: async (dtoIn) => await Call(baseUri, "medicine/ack-low-stock", dtoIn, "post"),
-    updateStock: async (dtoIn) => await Call(baseUri, "medicine/stock", dtoIn, "patch"),
-    update: async (dtoIn) => await Call(baseUri, "medicine/update", dtoIn, "post"),
-    delete: async (dtoIn) => {return await Call(baseUri, "medicine/delete", dtoIn, "post");
-    },
+    list:       (params) => Call(baseUri, "medicine/list",      params, "get"),
+    get:        (dto)    => Call(baseUri, "medicine/get",       dto,    "get"),
+    create:     (dto)    => Call(baseUri, "medicine/create",    dto,    "post"),
+    lowStock:   ()       => Call(baseUri, "medicine/low-stock", null,   "get"),
+    ackLowStock:(dto)    => Call(baseUri, "medicine/ack-low-stock", dto, "post"),
+    updateStock:(dto)    => Call(baseUri, "medicine/stock",      dto,    "patch"),
+    update:     (dto)    => Call(baseUri, "medicine/update",     dto,    "post"),
+    delete:     (dto)    => Call(baseUri, "medicine/delete",     dto,    "post"),
   },
-
-  // Metody pro práci se záznamy užití
   usage: {
-    list: async (params) => await Call(baseUri, "usage/list", params, "get"),
-    create: async (dtoIn) => await Call(baseUri, "usage/create", dtoIn, "post"),
-    delete: async (dtoIn) => await Call(baseUri, "usage/delete", dtoIn, "delete"),
+    list:   (params) => Call(baseUri, "usage/list",   params, "get"),
+    create: (dto)    => Call(baseUri, "usage/create", dto,    "post"),
+    delete: (dto)    => Call(baseUri, "usage/delete", dto,    "delete"),
   },
 };
-
-export default FetchHelper;

@@ -1,93 +1,110 @@
 // src/Dashboard.jsx
-
-import { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Container from "react-bootstrap/Container";
-import Button from "react-bootstrap/Button";
-import DatePicker from "react-datepicker";
+import Container   from "react-bootstrap/Container";
+import Button      from "react-bootstrap/Button";
+import DatePicker  from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-import MedicineListProvider from "./components/Medicine/MedicineListProvider";
 import MedicineListContent from "./components/Medicine/MedicineListContent";
-import MedicineForm from "./components/Medicine/MedicineForm";
+import MedicineForm        from "./components/Medicine/MedicineForm";
 import MedicineDeleteDialog from "./components/Medicine/MedicineDeleteDialog";
+import UsageForm            from "./components/Usage/UsageForm";
+import { MedicineListContext } from "./components/Medicine/MedicineListProvider";
 
 function Dashboard() {
   const navigate = useNavigate();
-
-  // Ovládání modalů
-  const [formData, setFormData] = useState(null);
-  const [deleteData, setDeleteData] = useState(null);
-
-  // Vybrané datum pro zobrazení, které se předá do MedicineListContent
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showUsageForm, setShowUsageForm] = useState(false);
+
+  // Nově lokální stav pro medicine-form
+  const [showMedForm, setShowMedForm] = useState(false);
+  const [formData, setFormData]       = useState(null);
+  const [deleteData, setDeleteData]   = useState(null);
+
+  const { handlerMap, data } = useContext(MedicineListContext);
+  const medicines = data?.stockList || [];
+
+  // Záznam užití
+  const handleUsageSubmit = async dto => {
+    const res = await handlerMap.handleCreate(dto);
+    if (res.ok) setShowUsageForm(false);
+    return res;
+  };
+
+  // Vytvoření nebo úprava léku
+  const handleMedicineSubmit = async dto => {
+    const res = dto.id
+      ? await handlerMap.handleUpdate(dto)
+      : await handlerMap.handleCreate(dto);
+    if (res.ok) {
+      setShowMedForm(false);
+      setFormData(null);
+    }
+    return res;
+  };
 
   return (
-    <MedicineListProvider>
-      <Container fluid className="mt-4">
+    <Container fluid className="mt-4" style={{ paddingBottom: "56px" }}>
+      {/* Ovládací tlačítka */}
+      <div className="d-flex align-items-center mb-3" style={{ marginTop: "80px" }}>
+        <Button
+          variant="primary"
+          onClick={() => { setFormData({}); setShowMedForm(true); }}
+        >
+          Přidat lék
+        </Button>
 
-        {/* --- Horní ovládací řádek --- */}
-        <div className="d-flex align-items-center mb-3">
-          {/* Přidat nový lék */}
-          <Button variant="primary" onClick={() => setFormData({})}>
-            Přidat lék
-          </Button>
+        <Button
+          variant="warning"
+          className="ms-2"
+          onClick={() => setShowUsageForm(true)}
+        >
+          Užil jsem
+        </Button>
 
-          {/* Zaznamenat užití */}
-          <Button
-            variant="secondary"
-            className="ms-2"
-            onClick={() => {
-              /* Otevře UsageForm modal – ještě nedodělané */
-            }}
-          >
-            Užil jsem
-          </Button>
-
-          {/* Výběr data */}
-          <div className="ms-auto">
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
-              dateFormat="dd.MM.yyyy"
-            />
-          </div>
+        <div className="ms-auto">
+          <DatePicker
+            selected={selectedDate}
+            onChange={setSelectedDate}
+            dateFormat="dd.MM.yyyy"
+          />
         </div>
+      </div>
 
-        {/* --- Seznam léků --- */}
-        <MedicineListContent
-          selectedDate={selectedDate}
-          onEdit={(med) => setFormData(med)}
-          onDelete={(med) => setDeleteData(med)}
-        />
+      {/* Seznam léků */}
+      <MedicineListContent selectedDate={selectedDate} />
 
-        {/* --- Tlačítko nízké zásoby --- */}
-        <div className="text-center mt-4">
-          <Button
-            variant="outline-danger"
-            onClick={() => navigate("/lowstock")}
-          >
-            Nízká zásoba
-          </Button>
-        </div>
-      </Container>
+      {/* Stav zásob */}
+      <div className="text-center mt-4">
+        <Button variant="outline-danger" onClick={() => navigate("/lowstock")}>Stav zásob</Button>
+      </div>
 
-      {/* --- Modal pro přidání/úpravu léku --- */}
-      {formData && (
-        <MedicineForm
-          initialData={formData}
-          onClose={() => setFormData(null)}
-        />
-      )}
+      {/* MedicineForm modal */}
+      <MedicineForm
+        show={showMedForm}
+        onHide={() => setShowMedForm(false)}
+        onSubmit={handleMedicineSubmit}
+        initialData={formData || {}}
+      />
 
-      {/* --- Dialog pro potvrzení smazání léku --- */}
+      {/* Dialog pro smazání léku */}
       {deleteData && (
         <MedicineDeleteDialog
           data={deleteData}
           onClose={() => setDeleteData(null)}
         />
       )}
-    </MedicineListProvider>
+
+      {/* UsageForm modal */}
+      <UsageForm
+        show={showUsageForm}
+        onHide={() => setShowUsageForm(false)}
+        onSubmit={handleUsageSubmit}
+        medicines={medicines}
+        defaultDate={selectedDate}
+      />
+    </Container>
   );
 }
 

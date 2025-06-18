@@ -1,6 +1,6 @@
 // src/components/Usage/UsageListProvider.jsx
 
-import { createContext, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, createContext } from "react";
 import usageApi from "../../api/usage-api";
 
 // Context, přes který komponenty získají data a handlery
@@ -17,15 +17,18 @@ function UsageListProvider({ medicineId, children }) {
   const [pendingId, setPendingId] = useState(null);
 
   // Načteme historii užití
-  async function handleLoad() {
-    setDto({ ...dto, state: "pending" });
+  const handleLoad = useCallback(async () => {
+    // Při každém volání nastavíme stav na pending
+    setDto(curr => ({ ...curr, state: "pending" }));
+    // Načteme data
     const result = await usageApi.list({ medicineId });
     if (result.ok) {
       setDto({ state: "ready", data: result.data, error: null });
     } else {
       setDto({ state: "error", data: null, error: result.data });
     }
-  }
+  }, [medicineId]);
+
 
   // Zaznamenání nového užití
   async function handleCreate(dtoIn) {
@@ -62,7 +65,7 @@ function UsageListProvider({ medicineId, children }) {
   // Načte při mountu a při změně medicineId
   useEffect(() => {
     handleLoad();
-  }, [medicineId]);
+  }, [handleLoad]);
 
   return (
     <UsageListContext.Provider
