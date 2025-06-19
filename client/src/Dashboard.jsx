@@ -1,9 +1,9 @@
 // src/Dashboard.jsx
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Container   from "react-bootstrap/Container";
-import Button      from "react-bootstrap/Button";
-import DatePicker  from "react-datepicker";
+import Container  from "react-bootstrap/Container";
+import Button     from "react-bootstrap/Button";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import MedicineListContent from "./components/Medicine/MedicineListContent";
@@ -17,27 +17,27 @@ function Dashboard() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showUsageForm, setShowUsageForm] = useState(false);
-
-  // Nově lokální stav pro medicine-form
-  const [showMedForm, setShowMedForm] = useState(false);
-  const [formData, setFormData]       = useState(null);
-  const [deleteData, setDeleteData]   = useState(null);
+  const [showMedForm, setShowMedForm]     = useState(false);
+  const [formData, setFormData]           = useState(null);
+  const [deleteData, setDeleteData]       = useState(null);
 
   const { handlerMap, data } = useContext(MedicineListContext);
   const medicines = data?.stockList || [];
 
-  // Záznam užití
- const handleUsageSubmit = async dto => {
-  // dto musí obsahovat medicineId, count, usageDate, note
-  const res = await usageApi.create(dto);
-  if (res.ok) {
-    setShowUsageForm(false);
-  }
-  return res;
- };
+  // Záznam užití: po úspěchu zavřeme modal a znovu načteme data pro ikonky
+  const handleUsageSubmit = async (dto) => {
+    const res = await usageApi.create(dto);
+    if (res.ok) {
+      setShowUsageForm(false);
+      await handlerMap.handleLoad();  // refresh data to update icons
+    } else {
+      console.error("Chyba serveru při ukládání užití:", res);
+    }
+    return res;
+  };
 
-  // Vytvoření nebo úprava léku
-  const handleMedicineSubmit = async dto => {
+  // Vytvoření/úprava léku
+  const handleMedicineSubmit = async (dto) => {
     const res = dto.id
       ? await handlerMap.handleUpdate(dto)
       : await handlerMap.handleCreate(dto);
@@ -76,31 +76,29 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Seznam léků */}
+      {/* Seznam léků s ikonami užití (prázdný / zaškrtnutý) */}
       <MedicineListContent selectedDate={selectedDate} />
 
       {/* Stav zásob */}
       <div className="text-center mt-4">
-        <Button variant="outline-danger" onClick={() => navigate("/lowstock")}>Stav zásob</Button>
+        <Button variant="outline-danger" onClick={() => navigate("/lowstock")}>
+          Stav zásob
+        </Button>
       </div>
 
-      {/* MedicineForm modal */}
+      {/* Modály */}
       <MedicineForm
         show={showMedForm}
         onHide={() => setShowMedForm(false)}
         onSubmit={handleMedicineSubmit}
         initialData={formData || {}}
       />
-
-      {/* Dialog pro smazání léku */}
       {deleteData && (
         <MedicineDeleteDialog
           data={deleteData}
           onClose={() => setDeleteData(null)}
         />
       )}
-
-      {/* UsageForm modal */}
       <UsageForm
         show={showUsageForm}
         onHide={() => setShowUsageForm(false)}

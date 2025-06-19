@@ -23,6 +23,7 @@ const schema = {
 };
 
 async function createAbl(req, res) {
+  console.log(">>> createAbl – dtoIn:", JSON.stringify(req.body));
   // validace vstupu
   const valid = ajv.validate(schema, req.body);
   if (!valid) {
@@ -49,6 +50,7 @@ async function createAbl(req, res) {
     medicineDao.updateStock(medicineId, -count);
     return res.status(200).json({ usage });
   } catch (e) {
+    console.error("!!! createAbl ERROR:", e);
     if (e.code === "unsufficientStock") {
       return res.status(400).json({ code: e.code, message: e.message });
     }
