@@ -1,6 +1,6 @@
 // src/components/Medicine/MedicineListContent.jsx
-
 import { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MedicineListContext } from "./MedicineListProvider";
 import usageApi from "../../api/usage-api";
 import Container from "react-bootstrap/Container";
@@ -10,32 +10,31 @@ import Button from "react-bootstrap/Button";
 import {
   CheckCircleFill,
   SlashCircle,
-  PlusSlashMinus,
+  Plus,
+  Dash,
   DatabaseExclamation,
 } from "react-bootstrap-icons";
 
 function MedicineListContent({ selectedDate }) {
+  const navigate = useNavigate();
   const { state, data, pendingId, handlerMap } = useContext(MedicineListContext);
   const [usedMap, setUsedMap] = useState({});
 
-  // Po načtení léků si načteme i historii použití pro každý med.id
+  // Načteme, které léky byly užity k vybranému dni
   useEffect(() => {
-    // jen když máme data a stav 'ready'
-    const stockList = data?.stockList || [];
-    if (state === "ready" && stockList.length > 0) {
-      stockList.forEach(async (med) => {
-        const res = await usageApi.list({ medicineId: med.id });
-        if (res.ok) {
-          const usedToday = res.data.usageList.some(
-            (u) => new Date(u.usageDate).toDateString() === selectedDate.toDateString()
-          );
-          setUsedMap((m) => ({ ...m, [med.id]: usedToday }));
-        }
-      });
-    }
+    if (state !== "ready") return;
+    const list = data.stockList || [];
+    list.forEach(async (med) => {
+      const res = await usageApi.list({ medicineId: med.id });
+      if (res.ok) {
+        const usedToday = res.data.usageList.some(
+          (u) => new Date(u.usageDate).toDateString() === selectedDate.toDateString()
+        );
+        setUsedMap((m) => ({ ...m, [med.id]: usedToday }));
+      }
+    });
   }, [state, data, selectedDate]);
 
-  // Loading
   if (state === "pending") {
     return (
       <Container className="text-center py-5">
@@ -43,25 +42,19 @@ function MedicineListContent({ selectedDate }) {
       </Container>
     );
   }
-
-  // Error
   if (state === "error") {
-    return (
-      <Container className="py-5">
-        Chyba při načítání dat: {data?.message || "neznámá chyba"}
-      </Container>
-    );
+    return <Container className="py-5">Chyba: {data?.message}</Container>;
   }
 
-  // Když je ready, ale žádná data (nebo prázdné pole), vykreslíme prázdnou zprávu
-  const stockList = data?.stockList || [];
-  if (stockList.length === 0) {
+  const stockList = data.stockList || [];
+  if (!stockList.length) {
     return <Container className="py-5">Žádné léky ve skladu.</Container>;
   }
 
-  // Rozčlenění na léky a suplementy
-  const meds = stockList.filter((m) => m.category === "Lék");
-  const sups = stockList.filter((m) => m.category === "Suplement");
+  const groups = {
+    Lék:     stockList.filter((m) => m.category === "Lék"),
+    Suplement: stockList.filter((m) => m.category === "Suplement"),
+  };
 
   const renderGroup = (title, items) => (
     <>
@@ -84,9 +77,18 @@ function MedicineListContent({ selectedDate }) {
 
             return (
               <tr key={med.id}>
-                <td>{med.name}</td>
+                <td
+                  style={{ cursor: "pointer", color: "#0d6efd" }}
+                  onClick={() => navigate(`/medicine/${med.id}`)}
+                >
+                  {med.name}
+                </td>
                 <td className="text-center">
-                  {used ? <CheckCircleFill /> : <SlashCircle />}
+                  {used ? (
+                    <CheckCircleFill color="green" />
+                  ) : (
+                    <SlashCircle color="gray" />
+                  )}
                 </td>
                 <td className="text-center">{med.count}</td>
                 <td className="text-center">
@@ -103,15 +105,28 @@ function MedicineListContent({ selectedDate }) {
                   )}
                 </td>
                 <td className="text-center">
+                  {/* Zvlášť plus */}
                   <Button
-                    variant="outline-secondary"
+                    variant="outline-success"
+                    size="sm"
+                    className="me-1"
+                    disabled={isPending}
+                    onClick={() =>
+                      handlerMap.handleUpdateStock({ id: med.id, delta: +1 })
+                    }
+                  >
+                    <Plus />
+                  </Button>
+                  {/* Zvlášť minus */}
+                  <Button
+                    variant="outline-danger"
                     size="sm"
                     disabled={isPending}
                     onClick={() =>
-                      handlerMap.handleUpdateStock({ id: med.id, delta: 1 })
+                      handlerMap.handleUpdateStock({ id: med.id, delta: -1 })
                     }
                   >
-                    <PlusSlashMinus />
+                    <Dash />
                   </Button>
                 </td>
               </tr>
@@ -124,8 +139,8 @@ function MedicineListContent({ selectedDate }) {
 
   return (
     <Container>
-      {renderGroup("Lék", meds)}
-      {renderGroup("Suplement", sups)}
+      {renderGroup("Lék", groups.Lék)}
+      {renderGroup("Suplement", groups.Suplement)}
     </Container>
   );
 }

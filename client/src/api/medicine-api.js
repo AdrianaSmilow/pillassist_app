@@ -7,6 +7,7 @@ const medicineApi = {
   list: () => call("/medicine/list"),
   /** GET /medicine/low-stock */
   lowStock: () => call("/medicine/low-stock"),
+  get: ({ id }) => call(`/medicine/get?id=${id}`),
   /** POST /medicine/create */
   create: dto =>
     call("/medicine/create", {
