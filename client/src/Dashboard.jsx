@@ -9,8 +9,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import MedicineListContent from "./components/Medicine/MedicineListContent";
 import MedicineForm        from "./components/Medicine/MedicineForm";
 import MedicineDeleteDialog from "./components/Medicine/MedicineDeleteDialog";
-import UsageForm            from "./components/Usage/UsageForm";
+import UsageForm           from "./components/Usage/UsageForm";
 import { MedicineListContext } from "./components/Medicine/MedicineListProvider";
+import usageApi            from "./api/usage-api";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -26,11 +27,14 @@ function Dashboard() {
   const medicines = data?.stockList || [];
 
   // Záznam užití
-  const handleUsageSubmit = async dto => {
-    const res = await handlerMap.handleCreate(dto);
-    if (res.ok) setShowUsageForm(false);
-    return res;
-  };
+ const handleUsageSubmit = async dto => {
+  // dto musí obsahovat medicineId, count, usageDate, note
+  const res = await usageApi.create(dto);
+  if (res.ok) {
+    setShowUsageForm(false);
+  }
+  return res;
+ };
 
   // Vytvoření nebo úprava léku
   const handleMedicineSubmit = async dto => {

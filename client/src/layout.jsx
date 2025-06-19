@@ -29,6 +29,7 @@ function Layout() {
           className="flex-grow-1 p-0"
           style={{ paddingTop: "80px", paddingBottom: "56px" }}
         >
+          {/* Jediný Outlet, vše pod ním má kontext */}
           <Outlet />
         </Container>
 
